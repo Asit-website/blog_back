@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { CreateBlog, EditBlog, DeleteBlog, getAllBlogs, GetBlog } = require("../controllers/Blog");
+const { CreateBlog, EditBlog, DeleteBlog, getAllBlogs, GetBlog, createCategory, updateCategory, deleteCategory, fetchAllCategories, getBlogsByCategory , getRecentBlogs } = require("../controllers/Blog");
 
 // Route for creating a blog
 router.post("/createBlog", CreateBlog);
 
-// Route for editing a blog - changed to PUT and include blogId in URL
 router.post("/editBlog/:blogId", EditBlog);
 
 // Route for deleting a blog
@@ -14,7 +13,23 @@ router.post("/deleteBlog", DeleteBlog);
 // Route for getting all blogs
 router.get("/getAllBlog", getAllBlogs);
 
-// Route for getting a single blog by ID
 router.get("/getBlog/:blogId", GetBlog);
+
+// Create Category
+router.post("/categories", createCategory);
+
+// Update Category
+router.put("/categories/:categoryId", updateCategory);
+
+// Delete Category
+router.delete("/categories/:categoryId", deleteCategory);
+
+// Fetch All Categories
+router.get("/categories", fetchAllCategories);
+
+// Get Blogs by Category
+router.get("/categories/:categoryId/blogs", getBlogsByCategory);
+
+router.get("/getRecentBlog" , getRecentBlogs)
 
 module.exports = router;
