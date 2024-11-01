@@ -37,14 +37,37 @@ exports.CreateBlog = async (req, res) => {
   }
 };
 
+
 exports.EditBlog = async (req, res) => {
   const { blogId } = req.params;
-  const { title, description, images, categoryId } = req.body;
+  const { title, description, categoryId } = req.body;
+  const images = req.files?.images; // Check if images are present in the request
+
+  console.log("title " ,title , "iamges " , images);
 
   try {
+    const imageUrls = [];
+
+    // If new images are provided, upload them to Cloudinary
+    if (images) {
+      const imageArray = Array.isArray(images) ? images : [images];
+      for (const image of imageArray) {
+        const result = await uploadImageToCloudinary(image, "blog_images");
+        imageUrls.push(result.secure_url);
+      }
+    }
+
+    // Update blog with new data and new images if provided
+    const updateData = {
+      title,
+      description,
+      category: categoryId,
+    };
+    if (imageUrls.length > 0) updateData.images = imageUrls; // Only update images if new images are uploaded
+
     const updatedBlog = await Blog.findByIdAndUpdate(
       blogId,
-      { title, description, images, category: categoryId },
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -52,6 +75,7 @@ exports.EditBlog = async (req, res) => {
       return res.status(404).json({ status: false, message: "Blog not found" });
     }
 
+    // Update the category with the blog ID if necessary
     await Category.findByIdAndUpdate(
       categoryId,
       { $addToSet: { blogs: updatedBlog._id } },
@@ -91,7 +115,7 @@ exports.DeleteBlog = async (req, res) => {
 
 exports.getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find().populate("category"); // Populate category details
+    const blogs = await Blog.find().populate("category").sort({date: -1 }); // Populate category details
     return res.status(200).json({
       status: true,
       blogs,
