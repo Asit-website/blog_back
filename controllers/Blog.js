@@ -1,10 +1,16 @@
 const Blog = require("../models/Blog");
 const Category = require("../models/Category");
 const { uploadImageToCloudinary } = require("../util/Upload");
+const bcrypt = require("bcryptjs"); // For password hashing
+const jwt = require("jsonwebtoken"); // For generating tokens
+const User = require("../models/User"); // Assuming you have a User model
+
+const JWT_SECRET = process.env.JWT_SECRET 
+
 
 exports.CreateBlog = async (req, res) => {
   try {
-    const { title, description, categoryId } = req.body;
+    const { title, description, categoryId , subdescription } = req.body;
     const images = Array.isArray(req.files.images)
       ? req.files.images
       : [req.files.images]; 
@@ -20,6 +26,7 @@ exports.CreateBlog = async (req, res) => {
       description,
       category: categoryId,
       images: imageUrls,
+      subdescription
     });
 
     await Category.findByIdAndUpdate(
@@ -37,13 +44,11 @@ exports.CreateBlog = async (req, res) => {
   }
 };
 
-
 exports.EditBlog = async (req, res) => {
   const { blogId } = req.params;
-  const { title, description, categoryId } = req.body;
+  const { title, description, categoryId , subdescription } = req.body;
   const images = req.files?.images; // Check if images are present in the request
 
-  console.log("title " ,title , "iamges " , images);
 
   try {
     const imageUrls = [];
@@ -62,6 +67,7 @@ exports.EditBlog = async (req, res) => {
       title,
       description,
       category: categoryId,
+      subdescription
     };
     if (imageUrls.length > 0) updateData.images = imageUrls; // Only update images if new images are uploaded
 
@@ -232,5 +238,59 @@ exports.getRecentBlogs = async (req, res) => {
     return res.status(200).json({ status: true, blogs: recentBlogs });
   } catch (error) {
     return res.status(500).json({ status: false, message: "Server error" });
+  }
+};
+
+
+exports.login = async (req, res) => {
+
+
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "3d" } 
+    );
+
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+    });
+  } catch (error) {
+    console.error("Error during login:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+exports.register = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({ email, password: hashedPassword });
+    await newUser.save();
+
+    return res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };

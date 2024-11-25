@@ -11,6 +11,7 @@ const blogSchema = new mongoose.Schema({
     ref: "Category", 
   },
   description: { type: String },
+  subdescription: { type: String },
   images: [
     {
       type: String,
