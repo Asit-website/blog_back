@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { CreateBlog, EditBlog, DeleteBlog, getAllBlogs, GetBlog, createCategory, updateCategory, deleteCategory, fetchAllCategories, getBlogsByCategory , getRecentBlogs, register, login } = require("../controllers/Blog");
+const { CreateBlog, EditBlog, DeleteBlog, getAllBlogs, GetBlog, createCategory, updateCategory, deleteCategory, fetchAllCategories, getBlogsByCategory , getRecentBlogs, register, login  , FetchCategorySingleDetail} = require("../controllers/Blog");
 
 // Route for creating a blog
 router.post("/createBlog", CreateBlog);
@@ -29,6 +29,8 @@ router.get("/categories", fetchAllCategories);
 
 // Get Blogs by Category
 router.get("/categories/:categoryId/blogs", getBlogsByCategory);
+
+router.get("/singlecat/:id" , FetchCategorySingleDetail )
 
 router.get("/getRecentBlog" , getRecentBlogs)
 

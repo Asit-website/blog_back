@@ -294,3 +294,33 @@ exports.register = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.FetchCategorySingleDetail = async (req, res) => {
+  try {
+    const { id } = req.params; 
+
+    console.log("id",id);
+
+    const category = await Category.findById(id);
+
+    if (!category) {
+      return res.status(404).json({
+        status: false,
+        message: "Category not found",
+      });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: "Category fetched successfully",
+      data: category,
+    });
+  } catch (error) {
+    console.error("Error fetching category:", error);
+
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+    });
+  }
+};
