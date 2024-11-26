@@ -17,6 +17,11 @@ const blogSchema = new mongoose.Schema({
       type: String,
     },
   ],
+  banner: [
+    {
+      type: String,
+    },
+  ],
   date:{
     type: Date, 
     default:Date.now()

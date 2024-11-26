@@ -16,9 +16,23 @@ exports.CreateBlog = async (req, res) => {
       : [req.files.images]; 
     const imageUrls = [];
 
+    const banners = Array.isArray(req.files.banner)
+      ? req.files.banner
+      : [req.files.banner]; 
+    const imageUrls2 = [];
+
+    console.log("bammer",banners);
+
+
+
     for (const image of images) {
       const result = await uploadImageToCloudinary(image, "blog_images");
       imageUrls.push(result.secure_url);
+    }
+
+    for (const image of banners) {
+      const result = await uploadImageToCloudinary(image, "blog_images");
+      imageUrls2.push(result.secure_url);
     }
 
     const blogDetail = await Blog.create({
@@ -26,7 +40,8 @@ exports.CreateBlog = async (req, res) => {
       description,
       category: categoryId,
       images: imageUrls,
-      subdescription
+      subdescription,
+      banner: imageUrls2
     });
 
     await Category.findByIdAndUpdate(
@@ -47,13 +62,14 @@ exports.CreateBlog = async (req, res) => {
 exports.EditBlog = async (req, res) => {
   const { blogId } = req.params;
   const { title, description, categoryId , subdescription } = req.body;
-  const images = req.files?.images; // Check if images are present in the request
+  const images = req.files?.images; 
+  const banners = req.files?.banner; 
 
 
   try {
     const imageUrls = [];
+    const imageUrls2 = [];
 
-    // If new images are provided, upload them to Cloudinary
     if (images) {
       const imageArray = Array.isArray(images) ? images : [images];
       for (const image of imageArray) {
@@ -62,14 +78,22 @@ exports.EditBlog = async (req, res) => {
       }
     }
 
-    // Update blog with new data and new images if provided
+    if (banners) {
+      const imageArray = Array.isArray(banners) ? banners : [banners];
+      for (const image of imageArray) {
+        const result = await uploadImageToCloudinary(image, "blog_images");
+        imageUrls2.push(result.secure_url);
+      }
+    }
+
     const updateData = {
       title,
       description,
       category: categoryId,
-      subdescription
+      subdescription,
     };
-    if (imageUrls.length > 0) updateData.images = imageUrls; // Only update images if new images are uploaded
+    if (imageUrls.length > 0) updateData.images = imageUrls; 
+    if (imageUrls2.length > 0) updateData.banner = imageUrls2; 
 
     const updatedBlog = await Blog.findByIdAndUpdate(
       blogId,
@@ -81,7 +105,6 @@ exports.EditBlog = async (req, res) => {
       return res.status(404).json({ status: false, message: "Blog not found" });
     }
 
-    // Update the category with the blog ID if necessary
     await Category.findByIdAndUpdate(
       categoryId,
       { $addToSet: { blogs: updatedBlog._id } },
