@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET
 
 exports.CreateBlog = async (req, res) => {
   try {
-    const { title, description, categoryId , subdescription } = req.body;
+    const { title, description, categoryId , subdescription , author } = req.body;
     const images = Array.isArray(req.files.images)
       ? req.files.images
       : [req.files.images]; 
@@ -41,7 +41,8 @@ exports.CreateBlog = async (req, res) => {
       category: categoryId,
       images: imageUrls,
       subdescription,
-      banner: imageUrls2
+      banner: imageUrls2   , 
+      author
     });
 
     await Category.findByIdAndUpdate(
@@ -61,7 +62,7 @@ exports.CreateBlog = async (req, res) => {
 
 exports.EditBlog = async (req, res) => {
   const { blogId } = req.params;
-  const { title, description, categoryId , subdescription } = req.body;
+  const { title, description, categoryId , subdescription , author } = req.body;
   const images = req.files?.images; 
   const banners = req.files?.banner; 
 
@@ -91,6 +92,7 @@ exports.EditBlog = async (req, res) => {
       description,
       category: categoryId,
       subdescription,
+      author
     };
     if (imageUrls.length > 0) updateData.images = imageUrls; 
     if (imageUrls2.length > 0) updateData.banner = imageUrls2; 
@@ -340,6 +342,73 @@ exports.FetchCategorySingleDetail = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching category:", error);
+
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+exports.AllCatBlogs = async (req, res) => {
+  try {
+    const category  = await Category.find({ title: { $ne: "Featured" } }).populate("blogs");
+
+    return res.status(200).json({
+      status: true,
+      message: "Categories fetched successfully",
+      data: category ,
+    });
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
+exports.recentBlogs = async (req, res) => {
+  try {
+
+    const recentBlogs = await Blog.find({}).sort({ createdAt: -1 }).limit(6); 
+
+    return res.status(200).json({
+      status: true,
+      message: "Category fetched successfully",
+      data: recentBlogs,
+    });
+  } catch (error) {
+    console.error("Error fetching category:", error);
+
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+exports.FeaturedCategoryBlogs = async (req, res) => {
+  try {
+
+    const featuredCategory = await Category.findOne({ title: "Featured" }).populate("blogs").limit(6);
+
+    if (!featuredCategory) {
+      return res.status(404).json({
+        status: false,
+        message: "No category with title 'Featured' found",
+      });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: "Featured category fetched successfully",
+      data: featuredCategory, 
+    });
+  } catch (error) {
+    console.error("Error fetching featured category:", error);
 
     return res.status(500).json({
       status: false,
