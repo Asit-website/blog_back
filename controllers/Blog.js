@@ -144,9 +144,17 @@ exports.DeleteBlog = async (req, res) => {
   }
 };
 
+
 exports.getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find().populate("category").sort({date: -1 }); // Populate category details
+    const featuredCategory = await Category.findOne({ title: "Featured" });
+
+    const query = featuredCategory ? { category: { $ne: featuredCategory._id } } : {};
+
+    const blogs = await Blog.find(query)
+      .populate("category") 
+      .sort({ date: -1 });
+
     return res.status(200).json({
       status: true,
       blogs,
@@ -155,6 +163,7 @@ exports.getAllBlogs = async (req, res) => {
     return res.status(500).json({ status: false, error: error.message });
   }
 };
+
 
 exports.GetBlog = async (req, res) => {
   const { blogId } = req.params;
@@ -352,8 +361,8 @@ exports.FetchCategorySingleDetail = async (req, res) => {
 
 exports.AllCatBlogs = async (req, res) => {
   try {
-    const category  = await Category.find({ title: { $ne: "Featured" } }).populate("blogs");
-
+    const category = await Category.find({  $and: [ { title: { $ne: "Featured" } },  { title: { $ne: "All" } } ] }).populate("blogs");
+  
     return res.status(200).json({
       status: true,
       message: "Categories fetched successfully",
