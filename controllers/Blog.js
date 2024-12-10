@@ -425,3 +425,33 @@ exports.FeaturedCategoryBlogs = async (req, res) => {
     });
   }
 };
+
+exports.SingleBlog = async (req, res) => {
+  try {
+
+    const {id} = req.params;
+    
+    const blogdetail = await Blog.findById(id);
+
+    if(!blogdetail){
+      return res.status(400).json({
+        status: false,
+        message: "Featured category fetched unsuccssful",
+      });
+    }
+
+  
+    return res.status(200).json({
+      status: true,
+      message: "Featured category fetched successfully",
+      data: blogdetail, 
+    });
+  } catch (error) {
+    console.error("Error fetching featured category:", error);
+
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+    });
+  }
+};
