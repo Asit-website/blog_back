@@ -144,7 +144,7 @@ exports.DeleteBlog = async (req, res) => {
   }
 };
 
-exports.getAllBlogAdmin = async(req ,res)=>{
+exports.GetAllBlogAdmin = async(req ,res)=>{
 
    const blogs = await Blog.find({});
    return res.status(200).json({
