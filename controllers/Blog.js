@@ -10,7 +10,8 @@ const JWT_SECRET = process.env.JWT_SECRET
 
 exports.CreateBlog = async (req, res) => {
   try {
-    const { title, description, categoryId , subdescription , author } = req.body;
+    const { title, description, categoryId , subdescription , author,time } = req.body;
+    
     const images = Array.isArray(req.files.images)
       ? req.files.images
       : [req.files.images]; 
@@ -34,6 +35,7 @@ exports.CreateBlog = async (req, res) => {
       const result = await uploadImageToCloudinary(image, "blog_images");
       imageUrls2.push(result.secure_url);
     }
+   
 
     const blogDetail = await Blog.create({
       title,
@@ -42,7 +44,8 @@ exports.CreateBlog = async (req, res) => {
       images: imageUrls,
       subdescription,
       banner: imageUrls2   , 
-      author
+      author,
+      time
     });
 
     await Category.findByIdAndUpdate(

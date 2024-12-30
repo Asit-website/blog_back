@@ -28,7 +28,12 @@ const blogSchema = new mongoose.Schema({
   } , 
   author:{
     type:String,
-  }
+  },
+  // to  Store time in HH:MM 
+  time: {
+    type:String, 
+    required: true,
+  },
 });
 
 // Export the Blog model
